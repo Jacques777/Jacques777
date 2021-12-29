@@ -1,0 +1,1058 @@
+"""
+Assignment #4 in Collaboration with three other classmates.
+
+"""
+
+import matplotlib.pyplot as plt
+import math
+import numpy as np
+from numpy import arange
+from scipy.integrate import quad
+from scipy.integrate import odeint
+from scipy.misc import derivative
+from Assignment1 import*
+
+
+"""
+#Problem 1
+
+"""
+
+#Approximation functions
+
+#exact function
+def exactFunc(x):
+    return(((5./4)*math.e**(-2*x))+(.25*(2*x-1)))
+
+def derivFunc(x):
+     return(.5-(2.5*(e**(-2*x))))
+
+
+#Eulers Method
+def euler(h):
+    t = [0]
+    x = [1]
+    c = 0
+    r = int(2./h)+1
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        c = c + h
+        t.append(c)
+
+    #create mesh points (x's)
+    for i in range(len(t)):
+        x.append(x[i]+(h*(t[i]-2*(x[i]))))
+
+    return(x)
+    
+     
+def modEuler(h):
+    t = [0]
+    x = [1]
+    c = 0
+    #Takes interval 2 and divides it by the step size, adding 1
+    #to use 2.2 in computing the last mesh value.
+    r = int(2./h)+1
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        c = c + h
+        t.append(c)
+
+    #create mesh points (x's)
+    for i in range(len(t)-1):
+        mk = t[i] - 2.*x[i]
+        xk1 = x[i]+(h*mk)
+        mk1 = t[i+1]-(2.*xk1)
+        x.append(x[i]+(h*.5*(mk+mk1)))
+    return(x)
+
+def rk(h):
+    t = [0]
+    x = [1]
+    c = 0
+    r = int(2./h)+1
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        c = c + h
+        t.append(c)
+    
+    #create mesh points (x's)
+    for i in range(len(t)-1):
+            k1 = h*(t[i]-(2*x[i]))
+            k2 = h*((t[i]+(h*.5))-(2*(x[i]+(.5*k1))))
+            k3 = h*((t[i]+(h*.5))-(2*(x[i]+(.5*k2))))
+            k4 = h*(t[i+1]-(2*(x[i]+k3)))
+            x.append(x[i]+((1./6)*(k1+ 2*k2 + 2*k3 + k4)))
+    
+    return(x)
+
+def exact(h,i):
+    t = []
+    x = []
+    c = 0
+    r = int(i/h)+2
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        t.append(c)
+        c = c + h
+        
+    for i in range(len(t)):
+        x.append((((5./4)*math.e**(-2*t[i]))+(.25*(2*t[i]-1))))
+    return(x)
+
+
+def lin(c,h,y):
+    x = [0]
+    z = 0
+    r = int(2./h)+1
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        z = z + h
+        x.append(z)
+
+    if (0 <= c) & (c < x[1]).all():
+        answer = (y[0])+ ((y[1]-y[0])*(c-x[0])/(x[1]-x[0]))
+        x = []
+        return(answer)
+    if c == 2:
+        answer = (y[len(x)-1])
+        x = []
+        return(y[len(x-1)])
+    else:
+        for i in range(1,len(x)-1):
+            if ((x[i] <= c).all() & (c < x[i+1]).all()):
+                answer = y[i]+((y[i+1]-y[i])*((c-x[i])/(x[i+1]-x[i])))
+                return(answer)        
+
+#Needed to make a linear spline function that didn't take an array in scipy.   
+def linTest(c,h,y):
+    x = [0]
+    z = 0
+    r = int(2./h)+1
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        z = z + h
+        x.append(z)
+
+    if (0 <= c) & (c < x[1]):
+        answer = (y[0])+ ((y[1]-y[0])*(c-x[0])/(x[1]-x[0]))
+        return(answer)
+    if c == 2:
+        answer = (y[len(x)-1])
+        return(y[len(x-1)])
+    else:
+        for i in range(1,len(x)-1):
+            if ((x[i] <= c) & (c < x[i+1])):
+                answer = y[i]+((y[i+1]-y[i])*((c-x[i])/(x[i+1]-x[i])))
+                return(answer)
+def relativeDifference(y,z):
+    x = []
+    for i in range(len(z)):
+        x.append(float(abs(z[i]-y[i]))/abs(z[i]))
+    return(x)
+
+
+a = euler(.2)
+b = euler(.1)
+c = euler(.05)
+d = modEuler(.2)
+e = modEuler(.1)
+f = modEuler(.05)
+g = rk(.2)
+h = rk(.1)
+j = rk(.05)
+k = exact(.2,2.)
+l = exact(.1,2.)
+n = exact(.05,2.)
+
+
+"""
+
+print"Relative difference, Euler, h =.2 ", relativeDifference(a,k)
+print""
+print"Relative difference, Euler, h = .1 ", relativeDifference(b,l)
+print""
+print"Relative difference, Euler, h = .05 ", relativeDifference(c,n)
+print""
+print"Relative difference, Mod Euler, h =.2 ", relativeDifference(d,k)
+print""
+print"Relative difference, Mod Euler, h = .1 ", relativeDifference(e,l)
+print""
+print"Relative difference, Mod Euler, h = .05 ", relativeDifference(f,n)
+print""
+print"Relative difference, RK-4, h =.2 ", relativeDifference(g,k)
+print""
+print"Relative difference, RK-4, h = .1 ", relativeDifference(h,l)
+print""
+print"Relative difference, RK-4, h = .05 ", relativeDifference(j,n)
+
+"""
+
+
+#Integrals
+
+
+
+def diff(x,h,a):
+    return(exactFunc(x)-linTest(x,h,a))
+
+def integrandEu(x):
+    return(diff(x,.2,a))
+
+def integrandEu1(x):
+    return(abs(diff(x,.1,b)))
+
+def integrandEu05(x):
+    return(abs(diff(x,.05,c)))
+
+def integrandMoEu(x):
+    return(abs(diff(x,.2,d)))
+
+def integrandMoEu1(x):
+    return(abs(diff(x,.1,e)))
+
+def integrandMoEu05(x):
+    return(abs(diff(x,.05,f)))
+
+def integrandRK(x):
+    return(abs(diff(x,.2,g)))
+
+def integrandRK1(x):
+    return(abs(diff(x,.1,h)))
+
+def integrandRK05(x):
+    return(abs(diff(x,.05,j)))
+
+def intDiff(x):
+    I = quad(x,0,2)
+    return(I)
+
+
+"""
+print "Integral of Euler difference function, h = .2 = ",intDiff(integrandEu)
+print "Integral of Euler difference function, h = .1 = ",intDiff(integrandEu1) 
+print "Integral of Euler difference function, h = .05 = ",intDiff(integrandEu05) 
+print""
+print "Integral of Modified Euler difference function, h = .2 = ",intDiff(integrandMoEu)
+print "Integral of Modified Euler difference function, h = .1 = ",intDiff(integrandMoEu1) 
+print "Integral of Modified Euler difference function, h = .05 = ",intDiff(integrandMoEu05) 
+print""
+print "Integral of Fourth Order Runge-Kutte difference function, h = .2 = ",intDiff(integrandRK)
+print "Integral of Fourth Order Runge-Kutte difference function, h = .1 = ",intDiff(integrandRK1) 
+print "Integral of Fourth Order Runge-Kutte difference function, h = .05 = ",intDiff(integrandRK05) 
+print""
+
+"""
+
+
+#Graphs
+
+
+#Graph, h =.2
+a = euler(.2)
+d = modEuler(.2)
+g = rk(.2)
+
+#set up domain data
+domain1 = arange(0,2,.001)
+
+#set up output
+EF = [exactFunc(m) for m in domain1]
+euler2 = [lin(m,.2,a) for m in domain1]
+modEuler2 = [lin(m,.2,d) for m in domain1]
+RK2 = [lin(m,.2,g) for m in domain1]
+
+#place title above the graph
+plt.title(r'Approximations with h = .2')
+
+#plot the graph
+ExactFunction_label = r'Exact function'
+Euler2_label = r'Euler Method Approximation'
+Euler1_label = r'Modified Euler Method Approximation'
+RK2_label = r'RK-4 Approximation'
+plt.plot(domain1, euler2, color = 'blue', label = Euler2_label)
+plt.plot(domain1, modEuler2, color = 'green', label = Euler1_label)
+plt.plot(domain1, RK2, color = 'black', label = RK2_label)
+plt.plot(domain1, EF, color = 'red', label = ExactFunction_label)
+
+#make vertical and horizontal axes
+plt.axis([0,2, 0,1], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2,1.4,1.6,1.8,2])
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+
+#Graph, Approximation, h = .1
+
+b = euler(.1)
+e = modEuler(.1)
+h = rk(.1)
+
+#set up output
+euler1 = [lin(m,.1,b) for m in domain1]
+modEuler1 = [lin(m,.1,e) for m in domain1]
+RK1 = [lin(m,.1,h) for m in domain1]
+EF = [exactFunc(m) for m in domain1]
+
+#place title above the graph
+plt.title(r'Approximations with h = .1')
+
+#plot the graph
+ExactFunction_label = r'Exact function'
+Euler1_label = r'Euler Method Approximation'
+ModEuler1_label = r'Modified Euler Method Approximation'
+RK1_label = r'RK-4 Approximation'
+plt.plot(domain1, euler1, color = 'blue', label = Euler1_label)
+plt.plot(domain1, modEuler1, color = 'green', label = ModEuler1_label)
+plt.plot(domain1, RK1, color = 'black', label = RK1_label)
+plt.plot(domain1, EF, color = 'red', label = ExactFunction_label)
+
+#make vertical and horizontal axes
+plt.axis([0,2, 0,1], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2,1.4,1.6,1.8,2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+
+#Graph Approximations, h = .05
+c = euler(.05)
+
+#set up output
+euler05 = [lin(m,.05,c) for m in domain1]
+modEuler05 = [lin(m,.05,f) for m in domain1]
+RK05 = [lin(m,.05,j) for m in domain1]
+EF = [exactFunc(m) for m in domain1]
+
+#place title above the graph
+plt.title(r'Approximations with h = .05')
+
+#plot the graph
+ExactFunction_label = r'Exact function'
+Euler05_label = r'Euler Method Approximation'
+ModEuler05_label = r'Modified Euler Method Approximation'
+RK05_label = r'RK-4'
+plt.plot(domain1, euler05, color = 'green', label = Euler05_label)
+plt.plot(domain1, modEuler05, color = 'blue', label = ModEuler05_label)
+plt.plot(domain1, RK05, color = 'black', label = RK05_label)
+plt.plot(domain1, EF, color = 'red', label = ExactFunction_label)
+
+#make vertical and horizontal axes
+plt.axis([0,2, 0,1], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2,1.4,1.6,1.8,2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+
+#Graph, Diff h =.2
+#set up domain data
+
+#set up output
+diffeuler2= [diff(m,.2,a) for m in domain1]
+diffmodeuler2= [diff(m,.2,d) for m in domain1]
+diffRK2= [diff(m,.2,g) for m in domain1]
+
+#place title above the graph
+plt.title(r'Difference Functions with h = .2')
+
+#plot the graph
+Euler2_label = r'Euler Method Approximation'
+ModEuler2_label = r'Modified Euler Method Approximation'
+RK2_label = r'RK-4 Method Approximation'
+plt.plot(domain1, diffeuler2, color = 'blue', label = Euler2_label)
+plt.plot(domain1, diffmodeuler2, color = 'green', label = ModEuler2_label)
+plt.plot(domain1, diffRK2, color = 'black', label = RK2_label)
+
+#make vertical and horizontal axes
+plt.axis([0,2, -.1,.15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2,1.4,1.6,1.8,2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+
+#Graph, Diff h = .1
+#set up domain data
+
+#set up output
+diffeuler1 = [diff(m,.1,b) for m in domain1]
+difmodeuler1 = [diff(m,.1,e) for m in domain1]
+diffRK1 = [diff(m,.1,h) for m in domain1]
+
+#place title above the graph
+plt.title(r'Difference Functions with h = .1')
+
+#plot the graph
+Euler21_label = r'Euler Method Approximation'
+Euler1_label = r'Modified Euler Method Approximation'
+RK21_label = r'RK-4 Method Approximation'
+plt.plot(domain1, diffeuler1, color = 'blue', label = Euler21_label)
+plt.plot(domain1, difmodeuler1, color = 'green', label = Euler1_label)
+plt.plot(domain1, diffRK1, color = 'black', label = RK21_label)
+
+#make vertical and horizontal axes
+plt.axis([0,2, -.06,.07], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2,1.4,1.6,1.8,2])
+
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+
+#Graph, Diff, h = .05
+
+#set up output
+diffeuler05 = [diff(m,.05,c) for m in domain1]
+diffmodeuler05 = [diff(m,.05,f) for m in domain1]
+diffRK05 = [diff(m,.05,j) for m in domain1]
+
+#place title above the graph
+plt.title(r'Difference Functions with h = .05')
+
+#plot the graph
+Euler205_label = r'Euler Method Approximation'
+Euler05_label = r'Modified Euler Method Approximation'
+RK205_label = r'RK-4 Method Approximation'
+plt.plot(domain1, diffeuler05, color = 'blue', label = Euler205_label)
+plt.plot(domain1, diffmodeuler05, color = 'green', label = Euler05_label)
+plt.plot(domain1, diffRK05, color = 'red', label = RK205_label)
+
+#make vertical and horizontal axes
+plt.axis([0,2, -.02,.03], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2,1.4,1.6,1.8,2])
+
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+
+
+"""
+#Problem 2
+
+"""
+
+yPrime = -4*(math.pi**2)
+def ef(x):
+    return(math.cos(2*math.pi*x))
+
+def deriv(x):
+    return(-2*math.pi*math.sin(2*math.pi*x))
+
+def exact1(h):
+    t = []
+    x = []
+    c = 0
+    r = int(1.2/h)+2
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        t.append(c)
+        c = c + h
+        
+    for i in range(len(t)):
+        x.append(math.cos(2*math.pi*t[i]))
+    
+    return(x)
+
+def estimatedFunc(h,stop, initialX, initialY, func):
+    x = [initialX]
+    y = [initialY]
+    for i in range(int(stop/h)+1):
+        x.append(x[i] + (y[i]*h))
+        y.append(y[i]+(h*yPrime*x[i]))
+
+    return(x)
+
+h2 = estimatedFunc(.2,1.2,1,0, yPrime)
+h1 = estimatedFunc(.1,1.2,1,0, yPrime)
+h05 = estimatedFunc(.05,1.2,1,0, yPrime)
+h01 = estimatedFunc(.01,1.2,1,0, yPrime)
+h001 = estimatedFunc(.001,1.2,1,0, yPrime)
+
+
+
+def modEulerODE(h):
+    t = [0]
+    x = [1]
+    y = [0]
+    c = 0
+    z = []
+    #Takes interval 1.2 and divides it by the step size, adding 1
+    #to use 1.2 in computing the last mesh value.
+    r = int(1.2/h)+1
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        c = c + h
+        t.append(c)
+
+    #create mesh points (x's)
+    for i in range(len(t)-1):
+        ykStar = y[i] + (h*(-4*(math.pi**2)*x[i]))
+        x.append(x[i]+(h*.5*(y[i]+ykStar)))
+        y.append(ykStar)
+    return(x)
+
+def rkODE(h):
+    t = [0]
+    w1 = [1]
+    w2 = [0]
+    c = 0
+    r = int(1.2/h)+1
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        c = c + h
+        t.append(c)
+    #create mesh points (x's)
+    for i in range(len(t)-1):
+            k11 = h*(w2[i])
+            k12 = h*(-4*(math.pi**2)*w1[i])
+            k21 = h*(w2[i]+(.5*k12))
+            k22 = h*(-4*(math.pi**2)*(w1[i]+(.5*k11)))
+            k31 = h*(w2[i]+(.5*k22))
+            k32 = h*(-4*(math.pi**2)*(w1[i]+(.5*k21)))
+            k41 = h*(w2[i]+(k32))
+            k42 = h*(-4*(math.pi**2)*(w1[i]+(k31)))
+            w1.append(w1[i]+((1./6)*(k11+ 2*k21 + 2*k31 + k41)))
+            w2.append(w2[i]+((1./6)*(k12+ 2*k22 + 2*k32 + k42)))
+    return(w1)
+
+                             
+
+def diffFunctionsModEulerMethod(h):
+    t = [0]
+    c = 0
+    x = modEulerODE(h)
+    z = []
+    #Takes interval 1.2 and divides it by the step size, adding 1
+    #to use 1.2 in computing the last mesh value.
+    r = int(1.2/h)+1
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        c = c + h
+        t.append(c)
+
+    #create mesh points (x's)
+    for i in range(len(t)):
+        z.append(abs(ef(t[i])-x[i]))
+    return(z)
+
+def diffFunctionsEulerMethod(h,a):
+    t = [0]
+    c = 0
+    z = []
+    #Takes interval 1.2 and divides it by the step size, adding 1
+    #to use 1.2 in computing the last mesh value.
+    r = int(1.2/h)+1
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        c = c + h
+        t.append(c)
+
+    #create mesh points (x's)
+    for i in range(len(t)):
+        z.append(abs(ef(t[i])-a[i]))
+    return(z)
+
+def diffFunctionsRKODEMethod(h):
+    t = [0]
+    c = 0
+    x = rkODE(h)
+    z = []
+    #Takes interval 1.2 and divides it by the step size, adding 1
+    #to use 1.2 in computing the last mesh value.
+    r = int(1.2/h)+1
+
+    #create intervals at which to approximate function (t's)
+    for i in range(r):
+        c = c + h
+        t.append(c)
+
+    #create mesh points (x's)
+    for i in range(len(t)):
+        z.append(abs(ef(t[i])-x[i]))
+    return(z)
+
+def abDifference(y,mm):
+    rd = []
+    for i in range(len(y)):
+        rd.append(abs(mm[i]-y[i]))      
+    return(rd)
+
+o = h2
+p = h1
+q = h05
+r = modEulerODE(.2)
+s = modEulerODE(.1)
+t = modEulerODE(.05)
+u = rkODE(.2)
+v = rkODE(.1)
+w = rkODE(.05)
+x = exact1(.2)
+y = exact1(.1)
+z = exact1(.05)
+
+"""
+
+print"Problem 2"
+print""
+print"Absolute difference, Euler, h =.2 ", abDifference(o,x)
+print""
+print"Absolute difference, Euler, h = .1 ", abDifference(p,y)
+print""
+print"Absolute difference, Euler, h = .05 ", abDifference(q,z)
+print""
+print"Absolute difference, Mod Euler, h =.2 ", abDifference(r,x)
+print""
+print"Absolute difference, Mod Euler, h = .1 ", abDifference(s,y)
+print""
+print"Absolute difference, Mod Euler, h = .05 ", abDifference(t,z)
+print""
+print"Absolute difference, RK-4, h =.2 ", abDifference(u,x)
+print""
+print"Absolute difference, RK-4, h = .1 ", abDifference(v,y)
+print""
+print"Absolute difference, RK-4, h = .05 ", abDifference(w,z)
+
+"""
+#Graph
+domain2 = arange(0,1.2,.001)
+def domainFinite(h):
+    domainF = [0]
+    for i in range(1,int((1.2/h)+2)):
+        domainF.append(domainF[i-1]+h)
+    return(domainF)
+exactFunc = [ef(x) for x in domain2]
+EFLabel = 'Exact Function'
+h2Label = 'h = .2'
+h1Label = 'h = .1'
+h05Label = 'h = .05'
+h01Label = 'h = .01'
+h001Label = 'h = .001'
+plt.plot(domain2, exactFunc, color = 'red', label = EFLabel)
+plt.plot(domainFinite(.2),h2, color = 'blue', label = h2Label)
+plt.plot(domainFinite(.1),h1, color = 'green', label = h1Label)
+plt.plot(domainFinite(.05),h05, color = 'black', label = h05Label)
+plt.plot(domainFinite(.01),h01, color = 'purple', label = h01Label)
+plt.plot(domainFinite(.001),h001, color = 'orange', label = h001Label)
+
+#place title above the graph
+plt.title(r'Estimates for x(t) using the Euler Method')
+
+#make vertical and horizontal axes
+plt.axis([0,1.2, -20,15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+#Diff functions - Graph
+h2Label = 'h = .2'
+h1Label = 'h = .1'
+h05Label = 'h = .05'
+h01Label = 'h = .01'
+h001Label = 'h = .001'
+plt.plot(domainFinite(.2),diffFunctionsEulerMethod(.2,h2), color = 'blue', label = h2Label)
+plt.plot(domainFinite(.1),diffFunctionsEulerMethod(.1,h1), color = 'green', label = h1Label)
+plt.plot(domainFinite(.05),diffFunctionsEulerMethod(.05,h05), color = 'red', label = h05Label)
+plt.plot(domainFinite(.01),diffFunctionsEulerMethod(.01,h01), color = 'purple', label = h01Label)
+plt.plot(domainFinite(.001),diffFunctionsEulerMethod(.001,h001), color = 'orange', label = h001Label)
+
+#place title above the graph
+plt.title(r'Difference Functions for the Euler Method')
+
+#make vertical and horizontal axes
+plt.axis([0,1.2, -20,15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+#Graph of derivative
+domain2 = arange(0,1.2,.001)
+exactFunc = [deriv(x) for x in domain2]
+EFLabel = 'Derivative of Exact Function'
+plt.plot(domain2, exactFunc, color = 'blue', label = EFLabel)
+
+
+#place title above the graph
+plt.title(r'Derivative of x = cos(2*pi*x)')
+
+#make vertical and horizontal axes
+plt.axis([0,1.2, -20,15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+
+#Graph
+domain2 = arange(0,1.2,.001)
+exactFunc = [ef(x) for x in domain2]
+EFLabel = 'Exact Function'
+EulerLabel = 'Euler  Method'
+ModEulerLabel = 'Modified Euler Method'
+RKODELabel = 'RK - 4 Method'
+plt.plot(domain2, exactFunc, color = 'red', label = EFLabel)
+plt.plot(domainFinite(.2),h2, color = 'blue', label = EulerLabel)
+plt.plot(domainFinite(.2),modEulerODE(.2), color = 'green', label = ModEulerLabel)
+plt.plot(domainFinite(.2),rkODE(.2), color = 'purple', label = RKODELabel)
+
+#place title above the graph
+plt.title(r'Estimates for h = .2')
+
+#make vertical and horizontal axes
+plt.axis([0,1.2, -20,15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+
+#Graph
+domain2 = arange(0,1.2,.001)
+exactFunc = [ef(x) for x in domain2]
+plt.plot(domain2, exactFunc, color = 'red', label = EFLabel)
+plt.plot(domainFinite(.1),h1, color = 'blue', label = EulerLabel)
+plt.plot(domainFinite(.1),modEulerODE(.1), color = 'green', label = ModEulerLabel)
+plt.plot(domainFinite(.1),rkODE(.1), color = 'purple', label = RKODELabel)
+
+#place title above the graph
+plt.title(r'Estimates for h = .1')
+
+#make vertical and horizontal axes
+plt.axis([0,1.2, -20,15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+#Graph
+domain2 = arange(0,1.2,.001)
+exactFunc = [ef(x) for x in domain2]
+plt.plot(domain2, exactFunc, color = 'red', label = EFLabel)
+plt.plot(domainFinite(.05),h05, color = 'blue', label = EulerLabel)
+plt.plot(domainFinite(.05),modEulerODE(.05), color = 'green', label = ModEulerLabel)
+plt.plot(domainFinite(.05),rkODE(.05), color = 'purple', label = RKODELabel)
+
+#place title above the graph
+plt.title(r'Estimates for h = .05')
+
+#make vertical and horizontal axes
+plt.axis([0,1.2, -20,15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+#Graph
+domain2 = arange(0,1.2,.001)
+exactFunc = [ef(x) for x in domain2]
+plt.plot(domain2, exactFunc, color = 'red', label = EFLabel)
+plt.plot(domainFinite(.01),h01, color = 'blue', label = EulerLabel)
+plt.plot(domainFinite(.01),modEulerODE(.01), color = 'green', label = ModEulerLabel)
+plt.plot(domainFinite(.01),rkODE(.01), color = 'purple', label = RKODELabel)
+
+#place title above the graph
+plt.title(r'Estimates for h = .01')
+
+#make vertical and horizontal axes
+plt.axis([0,1.2, -20,15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+#Graph
+domain2 = arange(0,1.2,.001)
+exactFunc = [ef(x) for x in domain2]
+plt.plot(domain2, exactFunc, color = 'red', label = EFLabel)
+plt.plot(domainFinite(.001),h001, color = 'blue', label = EulerLabel)
+plt.plot(domainFinite(.001),modEulerODE(.001), color = 'green', label = ModEulerLabel)
+plt.plot(domainFinite(.001),rkODE(.001), color = 'purple', label = RKODELabel)
+
+#place title above the graph
+plt.title(r'Estimates for h = .001')
+
+#make vertical and horizontal axes
+plt.axis([0,1.2, -20,15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+o = h2
+p = h1
+q = h05
+r = modEulerODE(.2)
+s = modEulerODE(.1)
+t = modEulerODE(.05)
+u = rkODE(.2)
+v = rkODE(.1)
+w = rkODE(.05)
+x = exact1(.2)
+y = exact1(.1)
+z = exact1(.05)
+
+    
+#Graph - absolute errors for h = .2
+EulerLabel = 'Euler  Method'
+ModEulerLabel = 'Modified Euler Method'
+RKODELabel = 'RK - 4 Method'
+plt.plot(domainFinite(.2),abDifference(o,x), color = 'blue', label = EulerLabel)
+plt.plot(domainFinite(.2),abDifference(r,x), color = 'green', label = ModEulerLabel)
+plt.plot(domainFinite(.2),abDifference(u,x), color = 'purple', label = RKODELabel)
+
+#place title above the graph
+plt.title(r'Absolute Errors for h = .2')
+
+#make vertical and horizontal axes
+plt.axis([0,1.2, -20,15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+#Graph
+EulerLabel = 'Euler  Method'
+ModEulerLabel = 'Modified Euler Method'
+RKODELabel = 'RK - 4 Method'
+plt.plot(domainFinite(.1),abDifference(p,y), color = 'blue', label = EulerLabel)
+plt.plot(domainFinite(.1),abDifference(s,y), color = 'green', label = ModEulerLabel)
+plt.plot(domainFinite(.1),abDifference(v,y), color = 'purple', label = RKODELabel)
+
+#place title above the graph
+plt.title(r'Absolute Errors for h = .1')
+
+#make vertical and horizontal axes
+plt.axis([0,1.2, -20,15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+#Graph
+EulerLabel = 'Euler  Method'
+ModEulerLabel = 'Modified Euler Method'
+RKODELabel = 'RK - 4 Method'
+plt.plot(domainFinite(.05),abDifference(q,z), color = 'blue', label = EulerLabel)
+plt.plot(domainFinite(.05),abDifference(t,z), color = 'green', label = ModEulerLabel)
+plt.plot(domainFinite(.05),abDifference(w,z), color = 'purple', label = RKODELabel)
+
+#place title above the graph
+plt.title(r'Absolute Errors for h = .05')
+
+#make vertical and horizontal axes
+plt.axis([0,1.2, -20,15], 'equal')
+plt.xticks([0,.2,.4,.6,.8,1,1.2])
+
+#put in axes lines
+plt.axhline(y=0, color='black')
+plt.axvline(x=0, color='black')
+
+# legend
+plt.legend(loc='lower right')
+
+plt.show()
+
+
+#Problem 3
+
+def func(x):
+    return((1/(1+math.e**(-2*x)))+math.cos(x))
+
+def derivFunc(x):
+    return(((2*math.e**(-2*x))/((1+math.e**(-2*x))**2))-math.sin(x))
+
+#Graph of func
+domain = arange(-10,10,.001)
+funcOutput = [func(x) for x in domain]
+plt.title(r'Problem 3: Graph of Function')
+plt.plot(domain, funcOutput, color = 'blue')
+plt.axis([0,10, -1,5],'equal')
+plt.axhline(y=0, color='black')
+plt.axvline(x = 0, color = 'black')
+plt.show()
+            
+x01 = 2.7
+x02 = 9.0
+
+def rootApprox3(x):
+    approx = x
+    while(abs(0-func(approx))>(10**-7)):
+        deltax = (-func(approx)/derivFunc(approx))
+        approx = approx + deltax
+    return(approx)
+print""
+print"Problem 3"
+print"Two smallest positive roots are ", rootApprox3(2.7), rootApprox3(9.0)
+
+                
+#Problem 4
+
+
+x = 0.520785832960019
+
+#Method 2 - With substitution
+
+def func4(x):
+     return((9*(x**3))-(x**2)-1)
+
+def derivFunc4(x):
+    return((9*3*(x**2))-(2*x))
+    
+def rootApprox4(x):
+    approx = x
+    count = 0
+    while(abs(0-func4(approx))>(10**-10)):
+        count = count + 1
+        deltax = (float(-func4(approx))/derivFunc4(approx))
+        approx = approx + deltax
+    return(approx)
+
+
+print""
+print"Problem 4"
+xx1 = rootApprox4(1)
+print"Solving with substitution y = ",xx1
+
+
+#Method 1 - Newtons for higher order differential equations
+
+def j(x,y):
+    return([[(6*x),(-2*y)],[((3*(y*y))-(2*x)),(6*x*y)]])
+
+def f1(x,y):
+    return((3*(x**2))-(y**2))
+
+def f2(x,y):
+    return((3*x*(y**2))-(x**2)-1)
+
+
+def newtonHODE(x,y):
+    v = [[x],[y]]
+    F = [[1,1]]
+    count = 0
+    while (infNorm(F)> (10**-10)):
+        count = count +1
+        F = [[-1*f1(v[0][0], v[1][0])], [-1*f2(v[0][0], v[1][0])]]
+        jMatrix = j(x,y)
+        aMatrix = augmentMat(jMatrix,F)
+        List = ge_1(aMatrix)
+        xi = v[0][0] + List[1][0]
+        yi = v[1][0] + List[1][1]
+        v = [[xi],[yi]]
+        F = [[f1(v[0][0], v[1][0])], [f2(v[0][0], v[1][0])]]
+    return(v)
+xy = newtonHODE(1,1)
+print"Solving with second order Newton method (x,y) = ", xy
+
+
+
+
+
+
+    
