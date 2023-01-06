@@ -1,5 +1,5 @@
 - 👋 Hi, I’m @Jacques777
-- 👀 I’m interested in penetration testing and quantum computing.
+- 👀 I’m interested in penetration testing, AI/ML and quantum computing.
 - 🌱 I’m currently learning penetration testing, exoplanets, and quantum computing.
 - 💞️ I’m looking to collaborate on Github using MySQL DB, Python, R and C. Also working on exoplanet theory/equation writing using Latex-discovery-exploration.
 - 📫 How to reach me datumvictual.com
